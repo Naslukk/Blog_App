@@ -18,6 +18,7 @@ model User {
   posts     Post[]
   comments  Comment[]
   likes     Like[]
+  sessions Session[]
 }
 
 model Post {
@@ -60,4 +61,13 @@ model Like {
   post      Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@unique([userId, postId])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expiresAt DateTime
+
+  userId    String
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
