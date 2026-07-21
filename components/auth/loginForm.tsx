@@ -19,30 +19,42 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const LoginSchema = z
-  .object({
-    email: z.email("Invalid email"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-  })
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { login } from "@/actions/auth";
+import { loginSchema } from "@/lib/validations/auth";
 
-type LoginFormData = z.infer<typeof LoginSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function LoginForm() {
+  const router = useRouter();
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(LoginSchema),
+    resolver: zodResolver(loginSchema),
   });
 
   const [showPassword, setShowPassword] = useState(false);
 
   async function onSubmit(data: LoginFormData) {
-    console.log(data);
+    try {
+      const formData = new FormData();
+      formData.append("email", data.email);
+      formData.append("password", data.password);
 
-    // Later:
-    // await signup(data)
+      const result = await login(formData);
+
+      if (result.success) {
+        toast.success(result.message || "Logged in successfully!");
+        router.push("/home");
+      } else {
+        toast.error(result.message || "Login failed. Please try again.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred. Please try again.");
+    }
   }
 
   return (
@@ -125,7 +137,7 @@ export default function LoginForm() {
       </CardContent>
       <CardFooter className="flex flex-col items-center justify-center">
         <p className="text-sm text-muted-foreground">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <a href="/signup" className="text-primary hover:underline">
             Sign up
           </a>
