@@ -19,8 +19,18 @@ import {
 } from "@/components/ui/card";
 
 import { Separator } from "@/components/ui/separator";
+import { redirect } from "next/navigation";
+import { logout } from "@/actions/auth";
+import { verifySession } from "@/lib/session";
 
-export default function ProfilePage() {
+export default async function Profile() {
+
+    const user = await verifySession();
+
+  if (!user) {
+    redirect("/login");
+  }
+
   return (
     <main className="container mx-auto max-w-5xl py-10 px-4">
 
@@ -65,12 +75,15 @@ export default function ProfilePage() {
               Edit Profile
             </Button>
 
-            <Button
-              variant="outline"
-            >
-              <LogOut className="mr-2 h-4 w-4" />
-              Logout
-            </Button>
+            <form action={logout}>
+              <Button
+                variant="outline"
+                type="submit"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </form>
 
           </div>
 

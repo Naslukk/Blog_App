@@ -18,20 +18,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { signupSchema } from "@/lib/validations/auth";
+import { signup } from "@/actions/auth";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 
-const SignupSchema = z
-  .object({
-    name: z.string().min(3, "Name must be at least 3 characters"),
-    email: z.email("Invalid email"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match",
-    path: ["confirmPassword"],
-  });
-
-type SignupFormData = z.infer<typeof SignupSchema>;
+type SignupFormData = z.infer<typeof signupSchema>;
 
 export default function SignupForm() {
   const {
@@ -39,17 +31,33 @@ export default function SignupForm() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<SignupFormData>({
-    resolver: zodResolver(SignupSchema),
+    resolver: zodResolver(signupSchema),
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
-  async function onSubmit(data: SignupFormData) {
-    console.log(data);
+  const router = useRouter();
 
-    // Later:
-    // await signup(data)
+  async function onSubmit(data: SignupFormData) {
+    try {
+      const formData = new FormData();
+      formData.append("name", data.name);
+      formData.append("email", data.email);
+      formData.append("password", data.password);
+      formData.append("confirmPassword", data.confirmPassword);
+
+      const result = await signup(formData);
+
+      if (result.success) {
+        toast.success(result.message || "Account created successfully!");
+        router.push("/profile");
+      } else {
+        toast.error(result.message || "Signup failed. Please try again.");
+      }
+    } catch {
+      toast.error("An unexpected error occurred. Please try again.");
+    }
   }
 
   return (
