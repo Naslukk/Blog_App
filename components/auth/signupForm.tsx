@@ -51,7 +51,7 @@ export default function SignupForm() {
 
       if (result.success) {
         toast.success(result.message || "Account created successfully!");
-        router.push("/profile");
+        router.push("/home");
       } else {
         toast.error(result.message || "Signup failed. Please try again.");
       }
